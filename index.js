@@ -1,15 +1,25 @@
 // Dependencies \n
 const http = require("http");
-const {handleReqRes} = require('./helpers/handleReqRes');
+const { handleReqRes } = require('./helpers/handleReqRes');
 const environment = require('./helpers/environments');
+const data = require('./lib/data');
 
 // app object - module scaffolding
 const app = {};
 
-// configuration
-// app.config = {
-//   port: 4200,
-// };
+// testing fs
+data.create(
+  'test', 
+  'newFile3', 
+  { 
+    id: 2, 
+    name: "Shams", 
+    profession: "Software Developer" 
+  },
+  function(error) {
+    console.log('Error is ', error);
+  }
+);
 
 // create server
 app.createServer = () => {

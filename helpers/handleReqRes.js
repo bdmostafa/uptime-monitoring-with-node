@@ -30,7 +30,7 @@ handler.handleReqRes = (req, res) => {
         method,
         queryStringObj,
         headersObj
-    }
+    };
 
     const decoder = new StringDecoder('utf-8');
     let realData = '';
@@ -40,7 +40,7 @@ handler.handleReqRes = (req, res) => {
     req.on('data', (buffer) => {
       // console.log(buffer)
       realData += decoder.write(buffer);
-    })
+    });
   
     req.on('end', () => {
       realData += decoder.end();
@@ -54,10 +54,10 @@ handler.handleReqRes = (req, res) => {
         // return final response
         res.writeHead(statusCode);
         res.end(payloadString);
-    })
+    });
       // response handle
       res.end('Hello Node JS');
-    })
-  }
+    });
+};
 
-  module.exports = handler;
+module.exports = handler;
