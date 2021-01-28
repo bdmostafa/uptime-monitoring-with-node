@@ -8,18 +8,22 @@ const data = require('./lib/data');
 const app = {};
 
 // testing fs
-data.create(
-  'test', 
-  'newFile3', 
-  { 
-    id: 2, 
-    name: "Shams", 
-    profession: "Software Developer" 
-  },
-  function(error) {
-    console.log('Error is ', error);
-  }
-);
+// data.create(
+//   'test', 
+//   'newFile3', 
+//   { 
+//     id: 2, 
+//     name: "Shams", 
+//     profession: "Software Developer" 
+//   },
+//   function(error) {
+//     console.log('Error is ', error);
+//   }
+// );
+
+data.read('test', 'newFile', function(err, data) {
+  console.log(err, data);
+});
 
 // create server
 app.createServer = () => {
