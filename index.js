@@ -37,9 +37,9 @@ const app = {};
 //   console.log(`Error is ${err}`);
 // });
 
-data.delete('test', 'newFile', function(err) {
-  console.log(err);
-});
+// data.delete('test', 'newFile5', function(err) {
+//   console.log(err);
+// });
 
 // create server
 app.createServer = () => {
