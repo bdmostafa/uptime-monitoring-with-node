@@ -21,9 +21,21 @@ const app = {};
 //   }
 // );
 
-data.read('test', 'newFile', function(err, data) {
-  console.log(err, data);
+data.read('test', 'newFile', function(err, result) {
+  console.log(err, result);
 });
+
+data.update(
+  'test', 
+  'newFile', 
+  {
+    id: 999,
+    course: "Back end",
+    Institution: "BS-23"
+  },
+  function(err) {
+  console.log(`Error is ${err}`);
+})
 
 // create server
 app.createServer = () => {
