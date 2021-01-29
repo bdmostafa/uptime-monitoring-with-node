@@ -1,6 +1,7 @@
 // dependencies
 const { hash, parseJSON } = require('../../helpers/utilities');
 const data = require('../../lib/data');
+const { user } = require('../../routes');
 
 // module scaffolding
 const handler = {};
@@ -30,15 +31,16 @@ handler._user.get = (requestProperties, callback) => {
         typeof (requestProperties.queryStringObj.mobile) === 'string'
             && requestProperties.queryStringObj.mobile.trim().length === 11
             ? requestProperties.queryStringObj.mobile : false;
-    
-    if(mobile) {
+
+    if (mobile) {
         // find the user
         data.read('users', mobile, (err, user) => {
+            // const userObj = {...parseJSON(user)};
             const userObj = parseJSON(user);
 
-            if(!err && user) {
+            if (!err && user) {
                 delete userObj.password;
-                console.log(userObj)
+                // console.log(userObj);
                 callback(200, userObj);
             } else {
                 callback(404, {
@@ -119,7 +121,75 @@ handler._user.post = (requestProperties, callback) => {
 };
 
 handler._user.put = (requestProperties, callback) => {
+    const firstName =
+        typeof (requestProperties.body.firstName) === 'string'
+            && requestProperties.body.firstName.trim().length > 0
+            ? requestProperties.body.firstName : false;
 
+    const lastName =
+        typeof (requestProperties.body.lastName) === 'string'
+            && requestProperties.body.lastName.trim().length > 0
+            ? requestProperties.body.lastName : false;
+
+    const mobile =
+        typeof (requestProperties.body.mobile) === 'string'
+            && requestProperties.body.mobile.trim().length === 11
+            ? requestProperties.body.mobile : false;
+
+    const password =
+        typeof (requestProperties.body.password) === 'string'
+            && requestProperties.body.password.trim().length > 0
+            ? requestProperties.body.password : false;
+
+    if(mobile) {
+        if(firstName || lastName || password) {
+            // checking the user
+            data.read('users', mobile, (err, userData) => {
+                // const user = {...parseJSON(userData)};
+                const user = parseJSON(userData);
+
+                if(!err && user) {
+                    if(firstName) {
+                        user.firstName = firstName;
+                    }
+
+                    if(lastName) {
+                        user.lastName = lastName;
+                    }
+
+                    if(password) {
+                        user.password = hash(password);
+                    }
+
+                    // update userData to db
+                    data.update('users', mobile, user, (err2) => {
+                        if(!err2) {
+                            callback(200, {
+                                message: "Update successfully."
+                            })
+                        } else {
+                            callback(500, {
+                                error: "Error in updating from server side."
+                            })
+                        }
+                    })
+                } else {
+                    callback(400, {
+                        error: "Error in client request."
+                    });
+                }
+            });
+        } else {
+            callback(400, {
+                error: "Error in client request."
+            });
+        }
+    } else {
+        callback(400, {
+            error: "Invalid mobile number."
+        });
+    }
+    
 };
 
 handler._user.delete = (requestProperties, callback) => {
