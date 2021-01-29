@@ -10,7 +10,7 @@ const app = {};
 // testing fs
 // data.create(
 //   'test', 
-//   'newFile3', 
+//   'newFile', 
 //   { 
 //     id: 2, 
 //     name: "Shams", 
@@ -37,7 +37,7 @@ const app = {};
 //   console.log(`Error is ${err}`);
 // });
 
-// data.delete('test', 'newFile5', function(err) {
+// data.delete('test', 'newFile', function(err) {
 //   console.log(err);
 // });
 
