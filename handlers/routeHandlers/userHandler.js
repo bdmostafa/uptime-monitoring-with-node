@@ -193,7 +193,37 @@ handler._user.put = (requestProperties, callback) => {
 };
 
 handler._user.delete = (requestProperties, callback) => {
-
+    // Phone validation checking
+    const mobile =
+        typeof (requestProperties.queryStringObj.mobile) === 'string'
+            && requestProperties.queryStringObj.mobile.trim().length === 11
+            ? requestProperties.queryStringObj.mobile : false;
+    
+    if(mobile) {
+        data.read('users', mobile, (err, userData) => {
+            if(!err && userData) {
+                data.delete('users', mobile, (err2) => {
+                    if(!err2) {
+                        callback(200, {
+                            message: "User has been deleted successfully."
+                        });
+                    } else {
+                        callback(500, {
+                            error: "Error from server"
+                        });
+                    }
+                });
+            } else {
+                callback(500, {
+                    error: "Error from server"
+                });
+            }
+        });
+    } else {
+        callback(400, {
+            error: "Mobile is not valid."
+        })
+    }
 };
 
 module.exports = handler;
