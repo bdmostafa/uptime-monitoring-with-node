@@ -1,5 +1,5 @@
 // dependencies
-const { hash } = require('../../helpers/utilities');
+const { hash, parseJSON } = require('../../helpers/utilities');
 const data = require('../../lib/data');
 
 // module scaffolding
@@ -23,7 +23,35 @@ handler.userHandler = (requestProperties, callback) => {
 handler._user = {};
 
 handler._user.get = (requestProperties, callback) => {
-    callback(200, { message: "get method is ok" })
+    // callback(200, { message: "get method is ok" });
+
+    // Phone validation checking
+    const mobile =
+        typeof (requestProperties.queryStringObj.mobile) === 'string'
+            && requestProperties.queryStringObj.mobile.trim().length === 11
+            ? requestProperties.queryStringObj.mobile : false;
+    
+    if(mobile) {
+        // find the user
+        data.read('users', mobile, (err, user) => {
+            const userObj = parseJSON(user);
+
+            if(!err && user) {
+                delete userObj.password;
+                console.log(userObj)
+                callback(200, userObj);
+            } else {
+                callback(404, {
+                    error: "User not found."
+                });
+            }
+        })
+    } else {
+        callback(404, {
+            error: "User id is not valid."
+        });
+    }
+
 };
 
 handler._user.post = (requestProperties, callback) => {
