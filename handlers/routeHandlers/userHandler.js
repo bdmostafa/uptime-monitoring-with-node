@@ -35,8 +35,8 @@ handler._user.get = (requestProperties, callback) => {
     if (mobile) {
         // find the user
         data.read('users', mobile, (err, user) => {
-            // const userObj = {...parseJSON(user)};
-            const userObj = parseJSON(user);
+            const userObj = {...parseJSON(user)};
+            // const userObj = parseJSON(user); // not valid for reference copy
 
             if (!err && user) {
                 delete userObj.password;

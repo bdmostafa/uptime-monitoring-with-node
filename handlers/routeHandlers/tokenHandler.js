@@ -24,7 +24,30 @@ handler.tokenHandler = (requestProperties, callback) => {
 handler._token = {};
 
 handler._token.get = (requestProperties, callback) => {
+    // Id validation checking
+    const tokenId =
+        typeof (requestProperties.queryStringObj.tokenId) === 'string'
+            && requestProperties.queryStringObj.tokenId.trim().length === 16
+            ? requestProperties.queryStringObj.tokenId : false;
 
+    if (tokenId) {
+        // find the user
+        data.read('tokens', tokenId, (err, tokenData) => {
+            const tokenObj = {...parseJSON(tokenData)};
+
+            if (!err && tokenObj) {
+                callback(200, tokenObj);
+            } else {
+                callback(404, {
+                    error: "Token not found."
+                });
+            }
+        })
+    } else {
+        callback(404, {
+            error: "Token id is not valid."
+        });
+    }
 };
 
 handler._token.post = (requestProperties, callback) => {
@@ -44,16 +67,16 @@ handler._token.post = (requestProperties, callback) => {
             // console.log(hashedPassword === parseJSON(userData).password)
 
             if (hashedPassword === parseJSON(userData).password) {
-                let tokedId = randomString(16);
+                let tokenId = randomString(16);
                 let expires = Date.now() * 60 * 60 * 1000;
                 let tokenObj = {
                     mobile,
-                    tokedId,
+                    tokenId,
                     expires
                 };
 
                 // store tokenObj to db
-                data.create('tokens', tokedId, tokenObj, (err2) => {
+                data.create('tokens', tokenId, tokenObj, (err2) => {
                     if (!err2) {
                         callback(200, tokenObj);
                     } else {
