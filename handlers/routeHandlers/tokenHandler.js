@@ -1,5 +1,5 @@
 // dependencies
-const { hash, parseJSON } = require('../../helpers/utilities');
+const { hash, parseJSON, randomString } = require('../../helpers/utilities');
 const data = require('../../lib/data');
 // const { user } = require('../../routes');
 
@@ -28,15 +28,59 @@ handler._token.get = (requestProperties, callback) => {
 };
 
 handler._token.post = (requestProperties, callback) => {
-    
+    const mobile =
+        typeof (requestProperties.body.mobile) === 'string'
+            && requestProperties.body.mobile.trim().length === 11
+            ? requestProperties.body.mobile : false;
+
+    const password =
+        typeof (requestProperties.body.password) === 'string'
+            && requestProperties.body.password.trim().length > 0
+            ? requestProperties.body.password : false;
+
+    if (mobile && password) {
+        data.read('users', mobile, (err, userData) => {
+            let hashedPassword = hash(password);
+            // console.log(hashedPassword === parseJSON(userData).password)
+
+            if (hashedPassword === parseJSON(userData).password) {
+                let tokedId = randomString(16);
+                let expires = Date.now() * 60 * 60 * 1000;
+                let tokenObj = {
+                    mobile,
+                    tokedId,
+                    expires
+                };
+
+                // store tokenObj to db
+                data.create('tokens', tokedId, tokenObj, (err2) => {
+                    if (!err2) {
+                        callback(200, tokenObj);
+                    } else {
+                        callback(500, {
+                            error: "Error in server side"
+                        });
+                    }
+                });
+            } else {
+                callback(400, {
+                    error: "Password is not valid"
+                });
+            }
+        });
+    } else {
+        callback(400, {
+            error: "Error in client request."
+        });
+    }
 };
 
 handler._token.put = (requestProperties, callback) => {
-    
+
 };
 
 handler._token.delete = (requestProperties, callback) => {
-    
+
 };
 
 module.exports = handler;
