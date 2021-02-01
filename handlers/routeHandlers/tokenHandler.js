@@ -113,9 +113,10 @@ handler._token.put = (requestProperties, callback) => {
         data.read('tokens', tokenId, (err, tokenData) => {
             let tokenObj = parseJSON(tokenData);
             // console.log(err, tokenObj);
-
+            console.log(tokenObj.expires, Date.now())
             if (!err && tokenObj) {
                 if (tokenObj.expires > Date.now()) {
+                    
                     tokenObj.expires = Date.now() + 60 * 60 * 1000;
 
                     // store updated token to db
@@ -178,6 +179,23 @@ handler._token.delete = (requestProperties, callback) => {
             error: "tokenId is not valid."
         })
     }
+};
+
+handler._token.verify = (tokenId, mobile, callback) => {
+    data.read('tokens', tokenId, (err, tokenData) => {
+        if(!err && tokenData) {
+            let tokenObj = parseJSON(tokenData);
+            // console.log(mobile, tokenObj.mobile, tokenObj.expires, Date.now());
+
+            if(tokenObj.mobile === mobile && tokenObj.expires > Date.now()) {
+                callback(true);
+            } else {
+                callback(false);
+            }
+        } else {
+            callback(false);
+        }
+    });
 };
 
 module.exports = handler;

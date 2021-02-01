@@ -2,6 +2,7 @@
 const { hash, parseJSON } = require('../../helpers/utilities');
 const data = require('../../lib/data');
 const { user } = require('../../routes');
+const { _token } = require('./tokenHandler');
 
 // module scaffolding
 const handler = {};
@@ -33,27 +34,39 @@ handler._user.get = (requestProperties, callback) => {
             ? requestProperties.queryStringObj.mobile : false;
 
     if (mobile) {
-        // find the user
-        data.read('users', mobile, (err, user) => {
-            const userObj = {...parseJSON(user)};
-            // const userObj = parseJSON(user); // not valid for reference copy
+        // verify token
+        let token = typeof (requestProperties.headersObj.token) === 'string' ? requestProperties.headersObj.token : false;
 
-            if (!err && user) {
-                delete userObj.password;
-                // console.log(userObj);
-                callback(200, userObj);
-            } else {
-                callback(404, {
-                    error: "User not found."
+        _token.verify(token, mobile, (tokenId) => {
+            // console.log(tokenId);
+
+            if (tokenId) {
+                // find the user
+                data.read('users', mobile, (err, user) => {
+                    const userObj = { ...parseJSON(user) };
+                    // const userObj = parseJSON(user); // not valid for reference copy
+
+                    if (!err && user) {
+                        delete userObj.password;
+                        // console.log(userObj);
+                        callback(200, userObj);
+                    } else {
+                        callback(404, {
+                            error: "User not found."
+                        });
+                    }
                 });
+            } else {
+                callback(403, {
+                    error: 'Authentication failed.'
+                })
             }
-        })
+        });
     } else {
         callback(404, {
             error: "User id is not valid."
         });
     }
-
 };
 
 handler._user.post = (requestProperties, callback) => {
@@ -141,42 +154,55 @@ handler._user.put = (requestProperties, callback) => {
             && requestProperties.body.password.trim().length > 0
             ? requestProperties.body.password : false;
 
-    if(mobile) {
-        if(firstName || lastName || password) {
-            // checking the user
-            data.read('users', mobile, (err, userData) => {
-                const user = {...parseJSON(userData)};
-                // const user = parseJSON(userData); // Not valid because of reference copy
+    if (mobile) {
+        if (firstName || lastName || password) {
+            // verify token
+            let token = typeof (requestProperties.headersObj.token) === 'string' ? requestProperties.headersObj.token : false;
 
-                if(!err && user) {
-                    if(firstName) {
-                        user.firstName = firstName;
-                    }
+            _token.verify(token, mobile, (tokenId) => {
+                // console.log(tokenId);
 
-                    if(lastName) {
-                        user.lastName = lastName;
-                    }
+                if (tokenId) {
+                    // checking the user
+                    data.read('users', mobile, (err, userData) => {
+                        const user = { ...parseJSON(userData) };
+                        // const user = parseJSON(userData); // Not valid because of reference copy
 
-                    if(password) {
-                        user.password = hash(password);
-                    }
+                        if (!err && user) {
+                            if (firstName) {
+                                user.firstName = firstName;
+                            }
 
-                    // update userData to db
-                    data.update('users', mobile, user, (err2) => {
-                        if(!err2) {
-                            callback(200, {
-                                message: "Update successfully."
+                            if (lastName) {
+                                user.lastName = lastName;
+                            }
+
+                            if (password) {
+                                user.password = hash(password);
+                            }
+
+                            // update userData to db
+                            data.update('users', mobile, user, (err2) => {
+                                if (!err2) {
+                                    callback(200, {
+                                        message: "Update successfully."
+                                    })
+                                } else {
+                                    callback(500, {
+                                        error: "Error in updating from server side."
+                                    })
+                                }
                             })
                         } else {
-                            callback(500, {
-                                error: "Error in updating from server side."
-                            })
+                            callback(400, {
+                                error: "Error in client request."
+                            });
                         }
-                    })
-                } else {
-                    callback(400, {
-                        error: "Error in client request."
                     });
+                } else {
+                    callback(403, {
+                        error: 'Authentication failed.'
+                    })
                 }
             });
         } else {
@@ -189,7 +215,7 @@ handler._user.put = (requestProperties, callback) => {
             error: "Invalid mobile number."
         });
     }
-    
+
 };
 
 handler._user.delete = (requestProperties, callback) => {
@@ -198,14 +224,27 @@ handler._user.delete = (requestProperties, callback) => {
         typeof (requestProperties.queryStringObj.mobile) === 'string'
             && requestProperties.queryStringObj.mobile.trim().length === 11
             ? requestProperties.queryStringObj.mobile : false;
-    
-    if(mobile) {
-        data.read('users', mobile, (err, userData) => {
-            if(!err && userData) {
-                data.delete('users', mobile, (err2) => {
-                    if(!err2) {
-                        callback(200, {
-                            message: "User has been deleted successfully."
+
+    if (mobile) {
+        // verify token
+        let token = typeof (requestProperties.headersObj.token) === 'string' ? requestProperties.headersObj.token : false;
+
+        _token.verify(token, mobile, (tokenId) => {
+            // console.log(tokenId);
+
+            if (tokenId) {
+                data.read('users', mobile, (err, userData) => {
+                    if (!err && userData) {
+                        data.delete('users', mobile, (err2) => {
+                            if (!err2) {
+                                callback(200, {
+                                    message: "User has been deleted successfully."
+                                });
+                            } else {
+                                callback(500, {
+                                    error: "Error from server"
+                                });
+                            }
                         });
                     } else {
                         callback(500, {
@@ -214,9 +253,9 @@ handler._user.delete = (requestProperties, callback) => {
                     }
                 });
             } else {
-                callback(500, {
-                    error: "Error from server"
-                });
+                callback(403, {
+                    error: 'Authentication failed.'
+                })
             }
         });
     } else {
