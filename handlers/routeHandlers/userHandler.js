@@ -145,8 +145,8 @@ handler._user.put = (requestProperties, callback) => {
         if(firstName || lastName || password) {
             // checking the user
             data.read('users', mobile, (err, userData) => {
-                // const user = {...parseJSON(userData)};
-                const user = parseJSON(userData);
+                const user = {...parseJSON(userData)};
+                // const user = parseJSON(userData); // Not valid because of reference copy
 
                 if(!err && user) {
                     if(firstName) {

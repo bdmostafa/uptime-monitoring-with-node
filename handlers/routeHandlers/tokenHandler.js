@@ -33,7 +33,7 @@ handler._token.get = (requestProperties, callback) => {
     if (tokenId) {
         // find the user
         data.read('tokens', tokenId, (err, tokenData) => {
-            const tokenObj = {...parseJSON(tokenData)};
+            const tokenObj = { ...parseJSON(tokenData) };
 
             if (!err && tokenObj) {
                 callback(200, tokenObj);
@@ -68,7 +68,7 @@ handler._token.post = (requestProperties, callback) => {
 
             if (hashedPassword === parseJSON(userData).password) {
                 let tokenId = randomString(16);
-                let expires = Date.now() * 60 * 60 * 1000;
+                let expires = Date.now() + 60 * 60 * 1000;
                 let tokenObj = {
                     mobile,
                     tokenId,
@@ -99,7 +99,51 @@ handler._token.post = (requestProperties, callback) => {
 };
 
 handler._token.put = (requestProperties, callback) => {
+    const tokenId =
+        typeof (requestProperties.body.tokenId) === 'string'
+            && requestProperties.body.tokenId.trim().length === 16
+            ? requestProperties.body.tokenId : false;
 
+    const extend =
+        typeof (requestProperties.body.extend) === 'boolean'
+            && requestProperties.body.extend === true
+            ? true : false;
+
+    if (tokenId && extend) {
+        data.read('tokens', tokenId, (err, tokenData) => {
+            let tokenObj = parseJSON(tokenData);
+            // console.log(err, tokenObj);
+
+            if (!err && tokenObj) {
+                if (tokenObj.expires > Date.now()) {
+                    tokenObj.expires = Date.now() + 60 * 60 * 1000;
+
+                    // store updated token to db
+                    data.update('tokens', tokenId, tokenObj, (err2) => {
+                        if (!err2) {
+                            callback(200);
+                        } else {
+                            callback(500, {
+                                error: "Error from server side"
+                            });
+                        }
+                    });
+                } else {
+                    callback(400, {
+                        error: "Token already expired."
+                    });
+                }
+            } else {
+                callback(400, {
+                    error: "Token not found"
+                });
+            }
+        });
+    } else {
+        callback(400, {
+            error: "Error in client token request. Invalid token."
+        });
+    }
 };
 
 handler._token.delete = (requestProperties, callback) => {
