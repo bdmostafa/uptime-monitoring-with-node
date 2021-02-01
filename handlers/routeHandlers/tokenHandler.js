@@ -147,7 +147,37 @@ handler._token.put = (requestProperties, callback) => {
 };
 
 handler._token.delete = (requestProperties, callback) => {
+    // id validation checking
+    const tokenId =
+        typeof (requestProperties.queryStringObj.tokenId) === 'string'
+            && requestProperties.queryStringObj.tokenId.trim().length === 16
+            ? requestProperties.queryStringObj.tokenId : false;
 
+    if (tokenId) {
+        data.read('tokens', tokenId, (err, tokenData) => {
+            if (!err && tokenData) {
+                data.delete('tokens', tokenId, (err2) => {
+                    if (!err2) {
+                        callback(200, {
+                            message: "Token has been deleted successfully."
+                        });
+                    } else {
+                        callback(500, {
+                            error: "Error from server"
+                        });
+                    }
+                });
+            } else {
+                callback(500, {
+                    error: "Error from server"
+                });
+            }
+        });
+    } else {
+        callback(400, {
+            error: "tokenId is not valid."
+        })
+    }
 };
 
 module.exports = handler;
