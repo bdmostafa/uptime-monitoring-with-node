@@ -158,7 +158,93 @@ handler._check.post = (requestProperties, callback) => {
 };
 
 handler._check.put = (requestProperties, callback) => {
+    // id validation checking
+    const checkId =
+        typeof (requestProperties.body.checkId) === 'string'
+            && requestProperties.body.checkId.trim().length === 16
+            ? requestProperties.body.checkId : false;
 
+    // input validation
+    let protocol =
+        typeof (requestProperties.body.protocol) === 'string'
+            && ['http', 'https'].indexOf(requestProperties.body.protocol) > -1
+            ? requestProperties.body.protocol : false;
+
+    let url =
+        typeof (requestProperties.body.url) === 'string'
+            && requestProperties.body.url.trim().length > 0
+            ? requestProperties.body.url : false;
+
+    let method =
+        typeof (requestProperties.body.method) === 'string'
+            && ['GET', 'POST', 'PUT', 'DELETE'].indexOf(requestProperties.body.method) > -1
+            ? requestProperties.body.method : false;
+
+    let successCodes =
+        typeof (requestProperties.body.successCodes) === 'object'
+            && requestProperties.body.successCodes instanceof Array
+            ? requestProperties.body.successCodes : false;
+
+    let timeoutSeconds =
+        typeof (requestProperties.body.timeoutSeconds) === 'number'
+            && requestProperties.body.timeoutSeconds % 1 === 0
+            && requestProperties.body.timeoutSeconds >= 1
+            && requestProperties.body.timeoutSeconds <= 5
+            ? requestProperties.body.timeoutSeconds : false;
+
+    if (checkId) {
+        if (protocol || url || method || successCodes || timeoutSeconds) {
+            // verify checkId
+            data.read('checks', checkId, (err, checkData) => {
+                if (!err && checkData) {
+                    const checkObj = parseJSON(checkData);
+
+                    // senitize token
+                    const token = typeof (requestProperties.headersObj.token) === 'string' ? requestProperties.headersObj.token : false;
+
+                    // verify token
+                    _token.verify(token, checkObj.mobile, (tokenIsValid) => {
+                        if (tokenIsValid) {
+                            // update checkObj and store to db
+                            if (protocol) checkObj.protocol = protocol;
+                            if (url) checkObj.url = url;
+                            if (method) checkObj.method = method;
+                            if (successCodes) checkObj.successCodes = successCodes;
+                            if (timeoutSeconds) checkObj.timeoutSeconds = timeoutSeconds;
+
+                            data.update('checks', checkId, checkObj, (err2) => {
+                                if(!err2) {
+                                    callback(200, {
+                                        message: "Check updated successfully."
+                                    });
+                                } else {
+                                    callback(500, {
+                                        error: "Error from server side."
+                                    });
+                                };
+                            });
+                        } else {
+                            callback(403, {
+                                error: 'Authentication failed. Token is not valid'
+                            });
+                        }
+                    });
+                } else {
+                    callback(500, {
+                        error: "Error from server. Check ID is not valid."
+                    });
+                };
+            });
+        } else {
+            callback(400, {
+                error: "Error from client request. Must be filled one field at least."
+            });
+        }
+    } else {
+        callback(400, {
+            error: "Error from client request. Check ID is not valid."
+        });
+    }
 };
 
 handler._check.delete = (requestProperties, callback) => {
