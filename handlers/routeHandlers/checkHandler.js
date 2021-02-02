@@ -248,7 +248,89 @@ handler._check.put = (requestProperties, callback) => {
 };
 
 handler._check.delete = (requestProperties, callback) => {
+    // id validation checking
+    const checkId =
+        typeof (requestProperties.queryStringObj.checkId) === 'string'
+            && requestProperties.queryStringObj.checkId.trim().length === 16
+            ? requestProperties.queryStringObj.checkId : false;
 
+    if (checkId) {
+        // find the check
+        data.read('checks', checkId, (err, checkData) => {
+            if (!err && checkData) {
+                const checkObj = parseJSON(checkData);
+
+                // senitize token
+                const token = typeof (requestProperties.headersObj.token) === 'string' ? requestProperties.headersObj.token : false;
+
+                // verify token
+                _token.verify(token, checkObj.mobile, (tokenIsValid) => {
+                    if (tokenIsValid) {
+                        // delete the check object
+                        data.delete('checks', checkId, (err1) => {
+                            if(!err1) {
+                                // update user data removing checkId
+                                data.read('users', checkObj.mobile, (err2, userData) => {
+                                    if(!err2 && userData) {
+                                        const userObj = parseJSON(userData);
+                                        let userChecks =
+                                        typeof(userObj.checks) === 'object'
+                                        && userObj.checks instanceof Array
+                                        ? userObj.checks : [];
+                                        
+                                        // find the position of checkId in userChecks
+                                        let checkIndex = userChecks.indexOf(checkId);
+                                        if(checkIndex > -1) {
+                                            // remove the specific checkId from userChecks
+                                            userChecks.splice(checkIndex, 1);
+
+                                            // update userObj and save to db
+                                            userObj.checks = userChecks;
+                                            data.update('users', userObj.mobile, userObj, (err3) => {
+                                                if(!err3) {
+                                                    callback(200, {
+                                                        message: "Check deleted and user checks updated successfully."
+                                                    });
+                                                } else {
+                                                    callback(500, {
+                                                        error: "Error from server side."
+                                                    });
+                                                };
+                                            });
+                                        } else {
+                                            callback(500, {
+                                                error: "CheckId already removed or does not exists."
+                                            });
+                                        }
+                                    } else {
+                                        callback(500, {
+                                            error: "Error from server side. User not found."
+                                        });
+                                    };
+                                });
+                            } else {
+                                callback(500, {
+                                    error: "Error from server side."
+                                });
+                            };
+                        });
+                    } else {
+                        callback(403, {
+                            error: 'Authentication failed. Token is not valid'
+                        });
+                    }
+                });
+            } else {
+                callback(500, {
+                    error: "Error from server side. Check not found."
+                });
+            };
+        });
+    } else {
+        callback(400, {
+            error: "Error from client request. Check ID is not valid."
+        });
+    };
 };
 
 module.exports = handler;
