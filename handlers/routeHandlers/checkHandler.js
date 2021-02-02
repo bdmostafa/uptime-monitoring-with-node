@@ -22,7 +22,42 @@ handler.checkHandler = (requestProperties, callback) => {
 handler._check = {};
 
 handler._check.get = (requestProperties, callback) => {
+    // id validation checking
+    const checkId =
+        typeof (requestProperties.queryStringObj.checkId) === 'string'
+            && requestProperties.queryStringObj.checkId.trim().length === 16
+            ? requestProperties.queryStringObj.checkId : false;
 
+    if (checkId) {
+        // find the check
+        data.read('checks', checkId, (err, checkData) => {
+            if (!err && checkData) {
+                const checkObj = parseJSON(checkData);
+
+                // senitize token
+                const token = typeof (requestProperties.headersObj.token) === 'string' ? requestProperties.headersObj.token : false;
+
+                // verify token
+                _token.verify(token, checkObj.mobile, (tokenIsValid) => {
+                    if (tokenIsValid) {
+                        callback(200, checkObj);
+                    } else {
+                        callback(403, {
+                            error: 'Authentication failed. Token is not valid'
+                        });
+                    }
+                });
+            } else {
+                callback(500, {
+                    error: "Error from server side."
+                });
+            };
+        });
+    } else {
+        callback(400, {
+            error: "Error from client request. Check ID is not valid."
+        });
+    };
 };
 
 handler._check.post = (requestProperties, callback) => {
@@ -38,7 +73,7 @@ handler._check.post = (requestProperties, callback) => {
     let timeoutSeconds = typeof (requestProperties.body.timeoutSeconds) === 'number' && requestProperties.body.timeoutSeconds % 1 === 0 && requestProperties.body.timeoutSeconds >= 1 && requestProperties.body.timeoutSeconds <= 5 ? requestProperties.body.timeoutSeconds : false;
 
     if (protocol && url && method && successCodes && timeoutSeconds) {
-        // verify token
+        // verify/senitize token
         const token = typeof (requestProperties.headersObj.token) === 'string' ? requestProperties.headersObj.token : false;
 
         // find user mobile through reading token
@@ -77,7 +112,7 @@ handler._check.post = (requestProperties, callback) => {
                                             userObj.checks.push(checkId);
 
                                             data.update('users', mobile, userObj, (err4) => {
-                                                if(!err4) {
+                                                if (!err4) {
                                                     // return updated data
                                                     callback(200, userObj);
                                                 } else {
