@@ -35,7 +35,7 @@ handler._user.get = (requestProperties, callback) => {
 
     if (mobile) {
         // verify token
-        let token = typeof (requestProperties.headersObj.token) === 'string' ? requestProperties.headersObj.token : false;
+        const token = typeof (requestProperties.headersObj.token) === 'string' ? requestProperties.headersObj.token : false;
 
         _token.verify(token, mobile, (tokenId) => {
             // console.log(tokenId);
@@ -121,7 +121,7 @@ handler._user.post = (requestProperties, callback) => {
             } else {
                 // 500 status code is for server site problem
                 callback(500, {
-                    error: 'Error from server side'
+                    error: 'Error from server side. User already exists.'
                 });
             }
         });
@@ -157,7 +157,7 @@ handler._user.put = (requestProperties, callback) => {
     if (mobile) {
         if (firstName || lastName || password) {
             // verify token
-            let token = typeof (requestProperties.headersObj.token) === 'string' ? requestProperties.headersObj.token : false;
+            const token = typeof (requestProperties.headersObj.token) === 'string' ? requestProperties.headersObj.token : false;
 
             _token.verify(token, mobile, (tokenId) => {
                 // console.log(tokenId);
@@ -227,7 +227,7 @@ handler._user.delete = (requestProperties, callback) => {
 
     if (mobile) {
         // verify token
-        let token = typeof (requestProperties.headersObj.token) === 'string' ? requestProperties.headersObj.token : false;
+        const token = typeof (requestProperties.headersObj.token) === 'string' ? requestProperties.headersObj.token : false;
 
         _token.verify(token, mobile, (tokenId) => {
             // console.log(tokenId);
