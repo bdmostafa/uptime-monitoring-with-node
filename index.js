@@ -3,11 +3,12 @@ const http = require("http");
 const { handleReqRes } = require('./helpers/handleReqRes');
 const environment = require('./helpers/environments');
 const data = require('./lib/data');
+const { sendSms } = require("./helpers/notifications");
 
 // app object - module scaffolding
 const app = {};
 
-// testing fs
+// testing fs ===================
 // data.create(
 //   'test', 
 //   'newFile', 
@@ -40,6 +41,11 @@ const app = {};
 // data.delete('test', 'newFile', function(err) {
 //   console.log(err);
 // });
+
+// testing sendSms ===========
+sendSms('01571776744', 'hello node js', (err) => {
+  console.log(err);
+});
 
 // create server
 app.createServer = () => {
