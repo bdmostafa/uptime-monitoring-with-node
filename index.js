@@ -1,7 +1,6 @@
 // Dependencies
 const server = require('./lib/server');
 const workers = require('./lib/workers');
-// const worker = require('./lib/workers');
 
 // app module scaffolding
 const app = {};
