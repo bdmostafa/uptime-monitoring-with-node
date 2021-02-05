@@ -1,4 +1,5 @@
 // dependencies
+const { accountSid, authToken } = require('./keys');
 
 // module scaffolding
 const environments = {};
@@ -10,8 +11,8 @@ environments.staging = {
     maxChecks: 5,
     twilio: {
         fromMobile: '+15005550237',
-        accountSid: 'ACec45e98ceac2c53724e339a23b44312b',
-        authToken: 'fbfcbefd839cc1bd23a685aa00f4da16'
+        accountSid,
+        authToken
     }
 };
 
@@ -22,8 +23,8 @@ environments.production = {
     maxChecks: 5,
     twilio: {
         fromMobile: '+15005550237',
-        accountSid: 'ACec45e98ceac2c53724e339a23b44312b',
-        authToken: 'fbfcbefd839cc1bd23a685aa00f4da16'
+        accountSid,
+        authToken
     }
 };
 
