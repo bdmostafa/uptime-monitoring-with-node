@@ -1,7 +1,6 @@
 // dependencies
-const { hash, parseJSON, randomString } = require('../../helpers/utilities');
+const { parseJSON, randomString } = require('../../helpers/utilities');
 const data = require('../../lib/data');
-const { user } = require('../../routes');
 const { _token } = require('./tokenHandler');
 const { maxChecks } = require('../../helpers/environments');
 

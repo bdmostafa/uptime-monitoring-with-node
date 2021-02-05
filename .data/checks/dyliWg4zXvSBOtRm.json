@@ -1,1 +1,1 @@
-{"checkId":"dyliWg4zXvSBOtRm","mobile":"01571776744","protocol":"https","url":"fb.com","method":"GET","successCodes":["200","201"],"timeoutSeconds":3}
+{"checkId":"dyliWg4zXvSBOtRm","mobile":"01571776744","protocol":"http","url":"google.com","method":"GET","successCodes":["200","201"],"timeoutSeconds":3,"state":"down","lastChecked":1612522464057}
